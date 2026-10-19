@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Poke it</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Welcome: 3 options -->
+  <section id="welcome" class="screen">
+    <div class="hero">
+      <h1 class="logo">Poke<span>it</span></h1>
+      <p class="tagline">Share a moment. Get a poke back.</p>
+      <div class="options">
+        <button class="btn primary" data-mode="user">Login as User</button>
+        <button class="btn dark" data-mode="admin">Login as Admin</button>
+        <button class="btn ghost" data-mode="signup">Create account</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Auth form -->
+  <section id="auth" class="screen hidden">
+    <form id="authForm" class="card auth-card" autocomplete="off">
+      <button type="button" id="backBtn" class="link">&larr; Back</button>
+      <h2 id="authTitle">Login</h2>
+      <label>Username <input id="username" required minlength="3"></label>
+      <label>Password <input id="password" type="password" required minlength="4"></label>
+      <label id="typeRow" class="hidden">Account type
+        <select id="acctType">
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+      </label>
+      <div id="adminFields" class="signup-fields hidden">
+        <label>Phone number <input id="phone" type="tel" inputmode="tel" placeholder="01XXXXXXXXX"></label>
+        <label>Admin invite code <input id="inviteCode" type="password"></label>
+        <p class="hint">A one-time code is sent to this number every time you log in as admin.</p>
+      </div>
+      <div id="signupFields" class="signup-fields hidden">
+        <label>Gender
+          <select id="gender">
+            <option value="">Select gender</option>
+            <option>Male</option>
+            <option>Female</option>
+            <option>Other</option>
+          </select>
+        </label>
+        <label>University <input id="university" maxlength="80"></label>
+        <label>Department <input id="department" maxlength="80"></label>
+        <label>Your ID <input id="studentId" maxlength="20" inputmode="numeric"></label>
+        <p class="hint">Your ID stays private. Nobody can see it, not even the admin.</p>
+      </div>
+      <p id="authMsg" class="msg" role="alert"></p>
+      <button class="btn primary" id="authSubmit">Continue</button>
+    </form>
+
+    <form id="otpForm" class="card auth-card hidden" autocomplete="off">
+      <button type="button" id="otpBack" class="link">&larr; Back</button>
+      <h2>Enter your code</h2>
+      <p id="smsDemo" class="sms"></p>
+      <label>6-digit code <input id="otpInput" inputmode="numeric" maxlength="6" pattern="\d{6}" required></label>
+      <p id="otpMsg" class="msg" role="alert"></p>
+      <button class="btn primary">Verify</button>
+      <button type="button" id="otpResend" class="link">Send a new code</button>
+    </form>
+  </section>
+
+  <!-- Main app -->
+  <section id="app" class="screen hidden">
+    <header class="topbar">
+      <div class="top-left">
+        <button id="hamburgerBtn" class="btn ghost sm hamburger" aria-label="Open menu" aria-expanded="false">☰</button>
+        <h1 class="logo small">Poke<span>it</span></h1>
+      </div>
+      <div class="who"><span id="whoami"></span></div>
+    </header>
+
+    <main class="wrap">
+      <div id="royal" class="royal hidden" aria-live="polite"></div>
+      <div id="tabs" class="tabs hidden">
+        <button class="tab active" data-tab="feed">Feed</button>
+        <button class="tab" data-tab="pending">Pending approval <b id="pendingCount">0</b></button>
+        <button class="tab" data-tab="cg">CG Guess</button>
+      </div>
+
+      <form id="composer" class="card composer hidden">
+        <label>To ID <input id="toId" maxlength="20" placeholder="ID of the person you're poking" required></label>
+        <textarea id="postText" rows="3" placeholder="What's on your mind?"></textarea>
+        <img id="preview" class="preview hidden" alt="Selected photo preview">
+        <div class="composer-row">
+          <label class="btn ghost sm">Add photo
+            <input type="file" id="postImg" accept="image/*" hidden>
+          </label>
+          <button class="btn primary sm">Post</button>
+        </div>
+        <p class="hint">Your post appears for everyone after an admin approves it.</p>
+      </form>
+
+      <div class="feed-layout"><div id="feed"></div></div>
+    </main>
+  </section>
+
+  <div id="menuBackdrop" class="menu-backdrop hidden"></div>
+  <aside id="sideMenu" class="side-menu" aria-label="Main menu">
+    <div class="menu-head"><h2>Menu</h2><button id="closeMenu" class="btn ghost sm" aria-label="Close menu">✕</button></div>
+    <details class="menu-group" open>
+      <summary>🎮 Guess Games</summary>
+      <div class="menu-links">
+        <button type="button" class="btn ghost sm menu-game" data-game="cg">🎓 CG Guess</button>
+        <button type="button" class="btn ghost sm menu-game" data-game="ct">📝 CT Number Guess</button>
+      </div>
+    </details>
+    <details class="menu-group">
+      <summary>📊 Guess Results</summary>
+      <div class="menu-links menu-results">
+        <div class="card post result-card"><button type="button" id="cgResultsToggle" class="btn ghost result-toggle" aria-expanded="false">🎓 CG Guess Results <span id="cgResultsCount"></span> ▾</button><div id="cgResultsPanel" class="hidden result-panel"></div></div>
+        <div class="card post result-card"><button type="button" id="ctResultsToggle" class="btn ghost result-toggle" aria-expanded="false">📝 CT Guess Results <span id="ctResultsCount"></span> ▾</button><div id="ctResultsPanel" class="hidden result-panel"></div></div>
+      </div>
+    </details>
+    <div class="menu-bottom">
+      <button id="profileBtn" class="btn ghost sm">👤 My profile</button>
+      <button id="logoutBtn" class="btn dark sm">↪ Log out</button>
+    </div>
+  </aside>
+
+  <dialog id="profileDlg" class="card profile">
+    <div id="profileBody"></div>
+    <button id="closeProfile" class="btn dark sm">Close</button>
+  </dialog>
+
+  <button id="gamesBtn" class="btn primary fab hidden" aria-label="Open games" title="Games">🎮</button>
+
+  <dialog id="gamesDlg" class="card profile games">
+    <div id="gameMenu">
+      <h2>Games</h2>
+      <div class="game-grid">
+        <button type="button" class="gtile" data-g="spin"><span class="gicon">🎡</span>Spin wheel</button>
+        <button type="button" class="gtile" data-g="ttt"><span class="gicon">⭕❌</span>Tic-Tac-Toe</button>
+        <button type="button" class="gtile" data-g="rps"><span class="gicon">✊✋✌️</span>Rock Paper Scissors</button>
+        <button type="button" class="gtile" data-g="mem"><span class="gicon">🧠</span>Memory Match</button>
+        <button type="button" class="gtile" data-g="rank"><span class="gicon">🏆</span>Ranking</button>
+      </div>
+    </div>
+    <div id="gamesBar" class="gbar hidden">
+      <button type="button" id="gamesBack" class="link">&larr; All games</button>
+      <strong id="gameTitle"></strong>
+    </div>
+    <section id="spinCard" class="spin hidden">
+        <div class="spin-info">
+          <h2>Spin and win</h2>
+          <p class="hint">Spin the wheel to earn points.</p>
+          <p class="pts">Points: <b id="pts">0</b></p>
+          <button id="spinBtn" type="button" class="btn primary sm">Spin</button>
+        </div>
+        <div class="wheel-wrap"><div class="pointer"></div><div id="wheel" class="wheel"></div></div>
+      </section>
+
+    <div id="tttPanel" class="ttt hidden">
+      <form id="challengeForm" class="comment-form">
+        <input id="friendName" placeholder="Friend's username" required>
+        <button class="btn sm">Challenge</button>
+      </form>
+      <p id="tttMsg" class="msg" role="alert"></p>
+      <div id="gameList"></div>
+      <div id="board" class="board hidden"></div>
+      <p class="hint">Win a game to earn 10 points. Your friend plays their move when they open Games.</p>
+    </div>
+    <div id="rpsPanel" class="ttt hidden">
+      <p class="hint">Pick one. Beat the computer to earn 2 points.</p>
+      <div class="rps-btns">
+        <button type="button" class="rps" data-m="rock" aria-label="Rock">✊</button>
+        <button type="button" class="rps" data-m="paper" aria-label="Paper">✋</button>
+        <button type="button" class="rps" data-m="scissors" aria-label="Scissors">✌️</button>
+      </div>
+      <p id="rpsResult" class="rps-result" aria-live="polite">Make your move.</p>
+      <p class="hint">Score (you : computer) <b id="rpsScore">0 : 0</b></p>
+    </div>
+
+    <div id="memPanel" class="ttt hidden">
+      <div class="mem-top"><span>Moves: <b id="memMoves">0</b></span><button type="button" id="memNew" class="btn sm">New game</button></div>
+      <div id="memGrid" class="mem-grid"></div>
+      <p id="memMsg" class="hint" aria-live="polite">Find all 8 pairs to earn 5 points.</p>
+    </div>
+
+    <div id="cgPanel" class="ttt hidden">
+      <p class="hint">Select a student ID and guess a CGPA range of exactly 0.05. The student will receive a request and can accept it to become your friend.</p>
+      <form id="cgForm" class="profile-form">
+        <label>Student ID <select id="cgId" required><option value="">Select student ID</option></select></label>
+        <label>CGPA range <select id="cgVal" required><option value="">Select a range</option></select></label>
+        <button class="btn primary sm">Send guess request</button>
+      </form>
+      <p id="cgMsg" class="rps-result" aria-live="polite"></p>
+      <strong>Notifications / requests</strong><div id="cgNotifications"></div>
+      <strong>My friends</strong><div id="cgFriends"></div>
+    </div>
+
+    <div id="ctPanel" class="ttt hidden">
+      <p class="hint">Select a student ID, enter the course name and guess the CT mark. You can submit at most 2 guesses for the same student ID and course. Public results show IDs and course names only — marks stay hidden.</p>
+      <form id="ctForm" class="profile-form">
+        <label>Student ID <select id="ctId" required><option value="">Select student ID</option></select></label>
+        <label>Course name <input id="ctCourse" maxlength="80" placeholder="e.g. Structured Programming" required></label>
+        <label>CT mark guess <input id="ctMark" type="number" min="0" max="100" step="0.5" placeholder="Enter mark (0–100)" required></label>
+        <button class="btn primary sm">Submit CT guess</button>
+      </form>
+      <p id="ctMsg" class="rps-result" aria-live="polite"></p>
+      <p class="hint" id="ctAttempts"></p>
+    </div>
+    <div id="roomPanel" class="ttt hidden"><div id="roomBody" class="ttt"></div></div>
+
+    <div id="rankPanel" class="hidden"></div>
+    <button id="closeGames" class="btn dark sm">Close</button>
+  </dialog>
+
+  <div id="toast" class="toast"></div>
+  <script src="script.js"></script>
+</body>
+</html>
